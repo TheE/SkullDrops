@@ -1,0 +1,15 @@
+creeper:
+  playerKilledOnly: true
+  dropChance: 2.5
+player:
+  playerKilledOnly: true
+  dropChance: 2.5
+skeleton:
+  playerKilledOnly: true
+  dropChance: 2.5
+wither:
+  playerKilledOnly: true
+  dropChance: 2.5
+zombie:
+  playerKilledOnly: true
+  dropChance: 2.5
