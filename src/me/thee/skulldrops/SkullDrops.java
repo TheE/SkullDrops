@@ -20,8 +20,6 @@
 package me.thee.skulldrops;
 
 import java.util.Random;
-import net.minecraft.server.NBTTagCompound;
-import net.minecraft.server.NBTTagString;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -29,7 +27,6 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -37,6 +34,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -129,15 +127,15 @@ public class SkullDrops extends JavaPlugin implements Listener {
     private ItemStack getSkullItemStack(Entity e) {
         switch (e.getType()) {
         case SKELETON:
-            return (new ItemStack(Material.SKULL_ITEM, 1, (short) 0, (byte) 0));
+            return (new ItemStack(Material.SKULL_ITEM, 1, (byte) 0));
         case WITHER:
-            return (new ItemStack(Material.SKULL_ITEM, 1, (short) 0, (byte) 1));
+            return (new ItemStack(Material.SKULL_ITEM, 1, (byte) 1));
         case ZOMBIE:
-            return (new ItemStack(Material.SKULL_ITEM, 1, (short) 0, (byte) 2));
+            return (new ItemStack(Material.SKULL_ITEM, 1, (byte) 2));
         case PLAYER:
             return playerSkullForName(1, e.getType().getName());
         case CREEPER:
-            return (new ItemStack(Material.SKULL_ITEM, 1, (short) 0, (byte) 4));
+            return (new ItemStack(Material.SKULL_ITEM, 1, (byte) 4));
         default:
             return null;
         }
@@ -150,14 +148,13 @@ public class SkullDrops extends JavaPlugin implements Listener {
      *            amount of skulls
      * @param name
      *            the name of the player
-     * @return itemStack with the skull
+     * @return itemStack with the skull(s)
      */
     private ItemStack playerSkullForName(int amount, String name) {
-        CraftItemStack skull = new CraftItemStack(Material.SKULL_ITEM, amount);
-        skull.setDurability((short) 3);
-        NBTTagCompound tag = new NBTTagCompound();
-        tag.set("SkullOwner", new NBTTagString("SkullOwner", name));
-        skull.getHandle().setTag(tag);
+        ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (byte) 3);
+        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        meta.setOwner(name);
+        skull.setItemMeta(meta);
         return skull;
     }
 }
