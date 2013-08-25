@@ -19,14 +19,13 @@
 
 package me.thee.skulldrops;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -35,84 +34,81 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.sk89q.commandbook.CommandBook;
+import com.sk89q.commandbook.util.PlayerUtil;
+import com.sk89q.minecraft.util.commands.Command;
+import com.sk89q.minecraft.util.commands.CommandContext;
+import com.sk89q.minecraft.util.commands.CommandException;
+import com.sk89q.minecraft.util.commands.CommandPermissions;
+import com.zachsthings.libcomponents.ComponentInformation;
+import com.zachsthings.libcomponents.bukkit.BukkitComponent;
+import com.zachsthings.libcomponents.config.ConfigurationBase;
+import com.zachsthings.libcomponents.config.Setting;
 
-/**
- * Simple plugin to drop skulls for skeletons, withers, zombies, creepers or
- * players if they are (optionally) killed by a player by configurable chance.
- * There is also a simple command to spawn the skull of a player to the user's
- * inventory.
- * 
- * @author thee
- */
-public class SkullDrops extends JavaPlugin implements Listener {
+@ComponentInformation(friendlyName = "SkullDrops", desc = "Allows entities to drop their skulls when thei die")
+public class SkullDrops extends BukkitComponent implements Listener {
+
+    private LocalConfiguration config;
+    private Random random = new Random();
 
     @Override
-    public void onEnable() {
-        FileConfiguration config = getConfig();
-        config.options().copyDefaults(true);
-        saveConfig();
-        getServer().getPluginManager().registerEvents(this, this);
+    public void enable() {
+        CommandBook.registerEvents(this);
+        registerCommands(Commands.class);
+        config = configure(new LocalConfiguration());
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command,
-            String commandLabel, String[] args) {
-        if (command.getName().equalsIgnoreCase("skull") && args.length <= 1) {
+    public void reload() {
+        super.reload();
+        configure(config);
+    }
 
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
+    private static class LocalConfiguration extends ConfigurationBase {
+        @Setting("playerKilledOnly")
+        public boolean playerKilledOnly = true;
+        @Setting("dropChanges")
+        public Map<String, Double> dropChanges = createDropChances();
 
-                if (!player.hasPermission("skullDrop.skull")) {
-                    player.sendMessage(ChatColor.RED
-                            + "Insufficent Permission.");
-                    return true;
-                }
-                String name;
-
-                if (args.length == 1) {
-                    name = args[0];
-                } else {
-                    name = player.getName();
-                }
-                player.getInventory()
-                        .addItem(
-                                new org.bukkit.inventory.ItemStack[] { playerSkullForName(
-                                        1, name) });
-                player.sendMessage(ChatColor.AQUA + "Added " + name
-                        + "'s skull to your inventory.");
-                return true;
-
-            } else {
-                sender.sendMessage(ChatColor.RED
-                        + "Only players can add skulls to their inventory!");
-                return true;
-            }
+        private static Map<String, Double> createDropChances() {
+            Map<String, Double> defDropChances = new HashMap<String, Double>();
+            defDropChances.put("skeleton", 2.5);
+            defDropChances.put("wither", 2.5);
+            defDropChances.put("zombie", 2.5);
+            defDropChances.put("creeper", 2.5);
+            defDropChances.put("player", 2.5);
+            return defDropChances;
         }
-        return false;
+    }
+
+    public class Commands {
+        @Command(aliases = { "skull" }, usage = "<player>", desc = "Adds player's skulls to your inventory", max = 1)
+        @CommandPermissions("skullDrop.skull")
+        public void skullCmd(CommandContext args, CommandSender sender) throws CommandException {
+            Player player = PlayerUtil.checkPlayer(sender);
+            String name = args.getString(0, player.getName());
+
+            player.getInventory().addItem(new ItemStack[] { playerSkullForName(1, name) });
+            player.sendMessage(ChatColor.AQUA + "Added " + name + "'s skull to your inventory.");
+        }
     }
 
     @EventHandler
-    public void onEntityDeath(EntityDeathEvent e) {
-        if (!(e.getEntityType().equals(EntityType.SKELETON)
-                || e.getEntityType().equals(EntityType.WITHER)
-                || e.getEntityType().equals(EntityType.ZOMBIE)
-                || e.getEntityType().equals(EntityType.CREEPER) || e
-                .getEntityType().equals(EntityType.PLAYER))) {
+    public void onEntityDeath(EntityDeathEvent event) {
+        if (!(event.getEntityType().equals(EntityType.SKELETON)
+                || event.getEntityType().equals(EntityType.WITHER)
+                || event.getEntityType().equals(EntityType.ZOMBIE)
+                || event.getEntityType().equals(EntityType.CREEPER) || event.getEntityType().equals(
+                EntityType.PLAYER))) {
             return;
         }
-        if (!(getConfig().getBoolean(
-                e.getEntityType().name().toLowerCase() + ".playerKilledOnly") && e
-                .getEntity().getKiller() instanceof Player)) {
+        if (config.playerKilledOnly && !(event.getEntity().getKiller() instanceof Player)) {
             return;
         }
-        Random r = new Random();
 
-        if ((100 * r.nextDouble()) < getConfig().getDouble(
-                e.getEntityType().name().toLowerCase() + ".dropChance")) {
-            Location loc = e.getEntity().getLocation();
-            loc.getWorld().dropItemNaturally(loc,
-                    getSkullItemStack(e.getEntity()));
+        if ((100 * random.nextDouble()) < config.dropChanges.get(event.getEntityType().name().toLowerCase())) {
+            Location loc = event.getEntity().getLocation();
+            loc.getWorld().dropItemNaturally(loc, getSkullItemStack(event.getEntity()));
         }
     }
 
