@@ -22,6 +22,7 @@ package me.thee.skulldrops;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -34,8 +35,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+
 import com.sk89q.commandbook.CommandBook;
-import com.sk89q.commandbook.util.PlayerUtil;
+import com.sk89q.commandbook.util.entity.player.PlayerUtil;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
