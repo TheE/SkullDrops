@@ -1,27 +1,28 @@
-// $Id$
-/*
- * SkullDrops
- * Copyright (C) 2012 thee and contributors
+/**
+ * Copyright (C) 2012 - 2014, SkullDrops team and contributors
  *
- * This program is free software: you can redistribute it and/or modify
+ * This file is part of SkullDrops.
+ *
+ * SkullDrops is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * SkullDrops is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with SkullDrops. If not, see <http://www.gnu.org/licenses/>.
  */
-
-package me.thee.skulldrops;
+package de.minehattan.skulldrops;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import javax.annotation.Nullable;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -47,7 +48,10 @@ import com.zachsthings.libcomponents.bukkit.BukkitComponent;
 import com.zachsthings.libcomponents.config.ConfigurationBase;
 import com.zachsthings.libcomponents.config.Setting;
 
-@ComponentInformation(friendlyName = "SkullDrops", desc = "Allows entities to drop their skulls when thei die")
+/**
+ * The central entry-point for SkullDrops.
+ */
+@ComponentInformation(friendlyName = "SkullDrops", desc = "Allows entities to drop their skulls upon death")
 public class SkullDrops extends BukkitComponent implements Listener {
 
     private LocalConfiguration config;
@@ -66,12 +70,20 @@ public class SkullDrops extends BukkitComponent implements Listener {
         configure(config);
     }
 
+    /**
+     * The configuration.
+     */
     private static class LocalConfiguration extends ConfigurationBase {
         @Setting("playerKilledOnly")
-        public boolean playerKilledOnly = true;
+        private boolean playerKilledOnly = true;
         @Setting("dropChanges")
-        public Map<String, Double> dropChanges = createDropChances();
+        private Map<String, Double> dropChanges = createDropChances();
 
+        /**
+         * Creates a map with the default drop chances.
+         * 
+         * @return the maps with the defaults
+         */
         private static Map<String, Double> createDropChances() {
             Map<String, Double> defDropChances = new HashMap<String, Double>();
             defDropChances.put("skeleton", 2.5);
@@ -83,18 +95,37 @@ public class SkullDrops extends BukkitComponent implements Listener {
         }
     }
 
+    /**
+     * The top level commands.
+     */
     public class Commands {
+        /**
+         * Allows players to receive the skulls of (other) players.
+         * 
+         * @param args
+         *            the command-arguments
+         * @param sender
+         *            the CommandSender who initiated the command
+         * @throws CommandException
+         *             if the command is cancelled
+         */
         @Command(aliases = { "skull" }, usage = "<player>", desc = "Adds player's skulls to your inventory", max = 1)
         @CommandPermissions("skullDrop.skull")
         public void skullCmd(CommandContext args, CommandSender sender) throws CommandException {
             Player player = PlayerUtil.checkPlayer(sender);
             String name = args.getString(0, player.getName());
 
-            player.getInventory().addItem(new ItemStack[] { playerSkullForName(1, name) });
+            player.getInventory().addItem(playerSkullForName(1, name));
             player.sendMessage(ChatColor.AQUA + "Added " + name + "'s skull to your inventory.");
         }
     }
 
+    /**
+     * Called whenever an entity dies.
+     * 
+     * @param event
+     *            the event
+     */
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         if (!(event.getEntityType().equals(EntityType.SKELETON)
@@ -115,15 +146,16 @@ public class SkullDrops extends BukkitComponent implements Listener {
     }
 
     /**
-     * Returns an ItemStack with the skull of the given entity. Returns null if
-     * there is no skull for the given entity.
+     * Returns an ItemStack with the skull of the given entity. Returns
+     * {@code null} if there is no skull for the given entity.
      * 
-     * @param e
+     * @param entity
      *            the entity
-     * @return itemStack with the skull
+     * @return an ItemStack with the skull
      */
-    private ItemStack getSkullItemStack(Entity e) {
-        switch (e.getType()) {
+    @Nullable
+    private ItemStack getSkullItemStack(Entity entity) {
+        switch (entity.getType()) {
         case SKELETON:
             return (new ItemStack(Material.SKULL_ITEM, 1, (byte) 0));
         case WITHER:
@@ -131,7 +163,7 @@ public class SkullDrops extends BukkitComponent implements Listener {
         case ZOMBIE:
             return (new ItemStack(Material.SKULL_ITEM, 1, (byte) 2));
         case PLAYER:
-            return playerSkullForName(1, e.getType().getName());
+            return playerSkullForName(1, entity.getType().getName());
         case CREEPER:
             return (new ItemStack(Material.SKULL_ITEM, 1, (byte) 4));
         default:
@@ -140,13 +172,14 @@ public class SkullDrops extends BukkitComponent implements Listener {
     }
 
     /**
-     * Returns an ItemStack with the skull(s) of the given player name.
+     * Returns an ItemStack that contains the given amount of skull(s) of the
+     * player who has the given name.
      * 
      * @param amount
      *            amount of skulls
      * @param name
      *            the name of the player
-     * @return itemStack with the skull(s)
+     * @return an ItemStack with the skulls
      */
     private ItemStack playerSkullForName(int amount, String name) {
         ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (byte) 3);

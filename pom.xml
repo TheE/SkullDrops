@@ -3,12 +3,18 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.minehattan</groupId>
     <artifactId>skulldrops</artifactId>
-    <version>0.4</version>
+    <version>0.5-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <!-- Fix encoding warnings -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <!-- Project information -->
     <name>SkullDrops</name>
     <inceptionYear>2012</inceptionYear>
-    <description>A commandbook-component that makes entities drop their skulls when they die</description>
+    <description>A commandbook-component that makes entities drop their skulls upon death</description>
 
     <licenses>
         <license>
@@ -19,25 +25,16 @@
         </license>
     </licenses>
 
-    <properties> <!-- Fix encoding warnings -->
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
+    <!-- Dependencies -->
     <repositories>
         <repository>
             <id>bukkit-repo</id>
             <url>http://repo.bukkit.org/content/groups/public/</url>
         </repository>
+
         <repository>
             <id>sk89q-repo</id>
             <url>http://maven.sk89q.com/repo/</url>
-            <snapshots>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>kitteh-repo</id>
-            <url>http://repo.kitteh.org/content/groups/public</url>
         </repository>
     </repositories>
 
@@ -45,19 +42,13 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.7.2-R0.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sk89q</groupId>
-            <artifactId>worldedit</artifactId>
-            <version>5.5.8</version>
+            <version>1.7.9-R0.2</version>
         </dependency>
 
         <dependency>
             <groupId>com.sk89q</groupId>
             <artifactId>commandbook</artifactId>
-            <version>2.3.1-SNAPSHOT</version>
+            <version>2.4</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.zachsthings.libcomponents</groupId>
@@ -73,7 +64,6 @@
 
     <build>
         <finalName>${project.name}</finalName>
-        <defaultGoal>clean install</defaultGoal>
 
         <plugins>
             <plugin>
@@ -82,6 +72,25 @@
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.12.1</version>
+                <executions>
+                    <execution>
+                        <id>verify-style</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <propertyExpansion>basedir=${basedir}</propertyExpansion>
+                    <configLocation>${basedir}/src/main/build/checkstyle.xml</configLocation>
                 </configuration>
             </plugin>
         </plugins>
