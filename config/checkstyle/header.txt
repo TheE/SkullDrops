@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012 - 2014, SkullDrops team and contributors
+ * Copyright (C) 2012 - 2015, SkullDrops team and contributors
  *
  * This file is part of SkullDrops.
  *
